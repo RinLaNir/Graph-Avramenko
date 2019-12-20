@@ -1,71 +1,134 @@
 #include <iostream> 
-#include <vector>
-#include <list>
-#include <stack>
+#include <limits.h> 
+#include <list> 
+#include <stack> 
+#include <vector> 
 #include "Graph.h"
+#define NINF INT_MIN 
+
+#define NINF INT_MIN
+
 using namespace std;
 
-void addedge(list<int> *ls, int x, int y) {
-	ls[x].push_back(y);
-	ls[y].push_back(x);
-	return;
+Graph::Graph(int V) // Constructor  
+{
+	this->V = V;
+	adj = new list<AdjListNode>[V];
 }
 
-void all_addedge(vector<Edge> const& edges, list<int> *ls, int n) {
-	for (int i = 0; i<n; i++) {
-		int x = edges[i].src;
-		int y = edges[i].dest;
-		ls[x].push_back(y);
-		ls[y].push_back(x);
-		return;
-	}
+Graph::~Graph() // Destructor  
+{
+	delete[] adj;
 }
 
-void inputedges(vector<Edge> & edges, int n) {
 
-	cout << "Input edges:  \n";
-	for (int i = 0; i<n; i++) {
-		edges.push_back(Edge());
-		cin >> edges[i].src;
-		cin >> edges[i].dest;
-	}
-	cout << "You entered:  \n";
-	for (int i = 0; i<n; i++) {
-		cout << "----\n";
-		cout << " " << edges[i].src << " ";
-		cout << edges[i].dest << "\n";
-	}
+void Graph::addEdge(int u, int v, int weight)
+{
+	AdjListNode node(v, weight);
+	adj[u].push_back(node); // Add v to u's list  
+	AdjListNode node2(u, weight);
+	adj[v].push_back(node2);
 }
 
-void DFS(list<int>*ls, int num, int x) {
-	bool *visit = new bool[num];
-	for (int i = 0;i<num;i++) {
-		visit[i] = false;
-	}
-	stack<int> st;
-	st.push(x);
-	while (!st.empty()) {
-		int s = st.top();
-		st.pop();
-		if (!visit[s]) {
-			cout << s << " ";
-			visit[s] = true;
-			list<int>::iterator it;
-			for (it = ls[s].begin();it != ls[s].end();it++) {
-				st.push(*it);
-			}
+// Method to print connected components in an 
+// undirected graph 
+void Graph::connectedComponents()
+{
+	// Mark all the vertices as not visited 
+	int k = 0;
+	bool *visited = new bool[V];
+	for (int v = 0; v < V; v++)
+		visited[v] = false;
+
+	for (int v = 0; v<V; v++)
+	{
+		if (visited[v] == false)
+		{
+			// print all reachable vertices 
+			// from v 
+			DFSUtil(v, visited);
+			k++;
+			int max_len = INT_MIN;
+			vector< bool > visit(V, false);
+			DFS(v, 0, &max_len, visit);
+			cout << "Diametr " << max_len << "\n";
 		}
 	}
+	cout << "Number if components " << k << " ";
 }
 
-void printGraph(Graph const& graph, int m)
+void Graph::DFSUtil(int v, bool visited[])
 {
-	for (int i = 0; i < m; i++)
-	{
-		cout << i << " ---";
+	// Mark the current node as visited and print it 
+	visited[v] = true;
 
-		for (int v : graph.adjList[i])
-			cout << "--> " << v << " ";
-		cout << endl;
+	// Recur for all the vertices 
+	// adjacent to this vertex 
+	list<AdjListNode>::iterator i;
+	for (i = adj[v].begin(); i != adj[v].end(); ++i) {
+		if (!visited[(*i).getV()]) DFSUtil((*i).getV(), visited);
+	}
+}
+
+
+// n is number of cities or nodes in graph
+// cable_lines is total cable_lines among the cities
+// or edges in graph
+int Graph::longestCable(int n)
+{
+	// maximum length of cable among the connected
+	// cities
+	int max_len = INT_MIN;
+
+	// call DFS for each city to find maximum
+	// length of cable
+	for (int i = 1; i <= n; i++)
+	{
+	// initialize visited array with 0
+		vector< bool > visited(n + 1, false);
+
+	// Call DFS for src vertex i
+	DFS(i, 0, &max_len, visited);
+	}
+
+	return max_len;
+}
+
+void Graph::DFS(int src,int prev_len, int* max_len, vector <bool> &visited)
+{
+	// Mark the src node visited
+	visited[src] = 1;
+
+	// curr_len is for length of cable from src
+	// city to its adjacent city
+	int curr_len = 0;
+
+	// Adjacent is pair type which stores
+	// destination city and cable length
+	pair < int, int > adjacent;
+
+	// Traverse all adjacent
+	list<AdjListNode>::iterator i;
+	for (i = adj[src].begin(); i != adj[src].end(); ++i)
+	{
+		// If node or city is not visited
+		AdjListNode node = *i;
+		if (!visited[node.getV()])
+		{
+			// Total length of cable from src city
+			// to its adjacent
+			curr_len = prev_len + node.getWeight();
+
+			// Call DFS for adjacent city
+			DFS(node.getV(), curr_len, max_len, visited);
+		}		
+
+		// If total cable length till now greater than
+		// previous length then update it
+		if ((*max_len) < curr_len)
+			*max_len = curr_len;
+
+		// make curr_len = 0 for next adjacent
+		curr_len = 0;
 	}
 }

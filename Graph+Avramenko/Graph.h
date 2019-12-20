@@ -1,35 +1,53 @@
-#pragma once
-
+#ifndef GraphH
+#define GraphH
+#include <iostream> 
+#include <limits.h> 
+#include <list> 
+#include <stack> 
 #include <vector>
-#include <list>
-
+#define NINF INT_MIN 
 using namespace std;
 
-struct Edge {
-	int src;
-	int dest;
-};
+// Graph is represented using adjacency list. Every  
+// node of adjacency list contains vertex number of  
+// the vertex to which edge connects. It also  
+// contains weight of the edge  
+class AdjListNode {
+	int v;
+	int weight;
 
-class Graph
-{
 public:
-	vector<vector<int>> adjList;
-
-	Graph(vector<Edge> const &edges, int N)
+	AdjListNode(int _v, int _w)
 	{
-		adjList.resize(N);
-
-		for (auto &edge : edges)
-		{
-			adjList[edge.src].push_back(edge.dest);
-
-		}
+		v = _v;
+		weight = _w;
 	}
+	int getV() { return v; }
+	int getWeight() { return weight; }
 };
 
-//FUNCTIONS
-extern void addedge(list<int> *ls, int x, int y);
-extern void all_addedge(vector<Edge> const& edges, list<int> *ls, int n);
-extern void inputedges(vector<Edge> & edges, int n);
-extern void DFS(list<int>*ls, int num, int x);
-extern void printGraph(Graph const& graph, int m);
+// Class to represent a graph using adjacency list  
+// representation  
+class Graph {
+	int V; // No. of vertices'  
+
+		   // Pointer to an array containing adjacency lists  
+	list<AdjListNode>* adj;
+
+	// A function used by longestPath  
+	void DFSUtil(int v, bool visited[]);
+	void DFS(int src, int prev_len, int* max_len, vector<bool> &visit);
+	int longestCable(int n);
+
+public:
+	Graph(int V); // Constructor  
+	~Graph(); // Destructor 
+
+			  // function to add an edge to graph  
+	void addEdge(int u, int v, int weight);
+	void connectedComponents();
+	// Finds longest distances from given source vertex  
+	void longestPath(int s);
+};
+
+#endif

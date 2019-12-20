@@ -1,26 +1,22 @@
-#include <iostream> 
-#include <vector>
-#include <stack>
 #include "Graph.h"
+#include <iostream>
+
+using namespace std;
+
+void test_1() {
+	Graph g(5);
+	g.addEdge(1, 0, 1);
+	g.addEdge(2, 3, 1);
+	g.addEdge(3, 4, 1);
+
+	cout << "Following are connected components \n";
+	g.connectedComponents();
+	cout << " \n";
+}
 
 int main()
 {
-	int n;
-	int m = 7;
-	cout << "Input number of edges\n";
-	cin >> n;
-	cout << "Input number of vertices\n";
-	cin >> m;
-
-	vector<Edge> edges =
-	{
-	 { 0, 1 }, { 1, 2 }, { 2, 0 }, { 2, 1 },
-	 { 3, 2 }, { 4, 5 }, { 5, 4 }
-	};
-
-	Graph graph(edges, m);
-
-	printGraph(graph, m);
+	test_1();
 
 	return 0;
 }
