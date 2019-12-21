@@ -49,12 +49,13 @@ void Graph::connectedComponents()
 			DFSUtil(v, visited);
 			k++;
 			int max_len = INT_MIN;
+			int max_vertex = INT_MIN;
 			vector< bool > visit(V, false);
-			DFS(v, 0, &max_len, visit);
+			DFS(v, 0, &max_len, &max_vertex, visit);
 			cout << "Diametr " << max_len << "\n";
 		}
 	}
-	cout << "Number if components " << k << " ";
+	cout << "Number of components " << k << " ";
 }
 
 void Graph::DFSUtil(int v, bool visited[])
@@ -79,22 +80,23 @@ int Graph::longestCable(int n)
 	// maximum length of cable among the connected
 	// cities
 	int max_len = INT_MIN;
+	int max_vertex = INT_MIN;
 
 	// call DFS for each city to find maximum
 	// length of cable
 	for (int i = 1; i <= n; i++)
 	{
-	// initialize visited array with 0
+		// initialize visited array with 0
 		vector< bool > visited(n + 1, false);
 
-	// Call DFS for src vertex i
-	DFS(i, 0, &max_len, visited);
+		// Call DFS for src vertex i
+		DFS(i, 0, &max_len, &max_vertex, visited);
 	}
 
 	return max_len;
 }
 
-void Graph::DFS(int src,int prev_len, int* max_len, vector <bool> &visited)
+void Graph::DFS(int src,int prev_len, int* max_len, int* max_vertex, vector <bool> &visited)
 {
 	// Mark the src node visited
 	visited[src] = 1;
@@ -120,15 +122,108 @@ void Graph::DFS(int src,int prev_len, int* max_len, vector <bool> &visited)
 			curr_len = prev_len + node.getWeight();
 
 			// Call DFS for adjacent city
-			DFS(node.getV(), curr_len, max_len, visited);
+			DFS(node.getV(), curr_len, max_len, max_vertex, visited);
 		}		
 
 		// If total cable length till now greater than
 		// previous length then update it
-		if ((*max_len) < curr_len)
+		if ((*max_len) < curr_len) {
 			*max_len = curr_len;
+			*max_vertex = node.getV();
+		}
 
 		// make curr_len = 0 for next adjacent
 		curr_len = 0;
 	}
+}
+
+// search for the farthest point
+int Graph::MaxVertex(int src) {
+	int max_len = INT_MIN;
+	int max_vertex = INT_MIN;
+
+	vector< bool > visited(V, false);
+	DFS(src, 0, &max_len, &max_vertex, visited);
+
+	return max_vertex;
+}
+
+bool  Graph::BFS(int src, int dest, int pred[], int dist[])
+{
+	// a queue to maintain queue of vertices whose 
+	// adjacency list is to be scanned as per normal 
+	// DFS algorithm 
+	list<int> queue;
+
+	// boolean array visited[] which stores the 
+	// information whether ith vertex is reached 
+	// at least once in the Breadth first search 
+	vector< bool > visited(V, false);
+
+	// initially all vertices are unvisited 
+	// so v[i] for all i is false 
+	// and as no path is yet constructed 
+	// dist[i] for all i set to infinity 
+	for (int i = 0; i < V; i++) {
+		dist[i] = INT_MAX;
+		pred[i] = -1;
+	}
+
+	// now source is first to be visited and 
+	// distance from source to itself should be 0 
+	visited[src] = true;
+	dist[src] = 0;
+	queue.push_back(src);
+
+	// standard BFS algorithm 
+	while (!queue.empty()) {
+		int u = queue.front();
+		queue.pop_front();
+		list<AdjListNode>::iterator i;
+		for (i = adj[u].begin(); i != adj[u].end(); ++i) {
+			AdjListNode node = *i;
+			if (visited[node.getV()] == false) {
+				visited[node.getV()] = true;
+				dist[node.getV()] = dist[u] + node.getWeight();
+				pred[node.getV()] = u;
+				queue.push_back(node.getV());
+
+				// We stop BFS when we find 
+				// destination. 
+				if (node.getV() == dest)
+					return true;
+			}
+		}
+	}
+
+	return false;
+}
+
+// utility function to print the shortest distance  
+// between source vertex and destination vertex 
+int Graph::ShortestDistance(int s, int dest)
+{
+	// predecessor[i] array stores predecessor of 
+	// i and distance array stores distance of i 
+	// from s 
+	int pred[1024], dist[1024];
+
+	if (BFS(s, dest, pred, dist) == false)
+	{
+		return 0;
+	}
+
+	return dist[dest];
+}
+
+void Graph::MaxShortestDistance(int src) {
+	int max = 0, last = 0, point;
+	for (int i = 0; i < V; ++i) {
+		last = ShortestDistance(src, i);
+		if (max < last) {
+			max = last;
+			point = i;
+		}
+	}
+	cout << "Farthest point of " << src << " is " << point << endl;
 }
